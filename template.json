@@ -22,7 +22,7 @@
         "description": "Secure string for password of Dynamics365"
       }
     },
-    
+
     "Dynamics365_url": {
       "type": "string",
       "metadata": {
@@ -542,10 +542,14 @@
                     }
                   },
                   "sink": {
-                    "type": "SqlDWSink",
-                    "allowCopyCommand": true,
-                    "copyCommandSettings": {},
-                    "tableOption": "autoCreate"
+                    "type": "JsonSink",
+                    "storeSettings": {
+                      "type": "AzureBlobFSWriteSettings"
+                    },
+                    "formatSettings": {
+                      "type": "JsonWriteSettings",
+                      "filePattern": "setOfObjects"
+                    }
                   },
                   "enableStaging": false
                 },
@@ -558,11 +562,9 @@
                 ],
                 "outputs": [
                   {
-                    "referenceName": "AzureSynapseAnalyticsTable1",
+                    "referenceName": "TaxidataJSONFiles",
                     "type": "DatasetReference",
-                    "parameters": {
-                      "tablename": "taxidata"
-                    }
+                    "parameters": {}
                   }
                 ]
               }
@@ -571,12 +573,11 @@
               "name": "OpenDataset"
             },
             "annotations": [],
-            "lastPublishTime": "2021-05-30T21:39:41Z"
+            "lastPublishTime": "2021-06-07T15:07:23Z"
           },
           "dependsOn": [
-            "[variables('dataFactoryName')]",
             "[concat(variables('factoryId'), '/datasets/Taxidata2019Parquet')]",
-            "[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsTable1')]"
+            "[concat(variables('factoryId'), '/datasets/TaxidataJSONFiles')]"
           ]
         },
         {
@@ -695,6 +696,70 @@
           "dependsOn": [
             "[variables('dataFactoryName')]",
             "[concat(variables('factoryId'), '/datasets/D365')]",
+            "[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsTable1')]"
+          ]
+        },
+        {
+          "name": "[concat(variables('dataFactoryName'), '/TaxidataJSONFiles')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "AzureDataLakeStorage",
+              "type": "LinkedServiceReference"
+            },
+            "annotations": [],
+            "type": "Json",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobFSLocation",
+                "fileName": "rawdata.json",
+                "fileSystem": "taxidata"
+              }
+            },
+            "schema": {}
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage')]"
+          ]
+        },
+        {
+          "name": "[concat(variables('dataFactoryName'), '/DFMoveTaxiData')]",
+          "type": "Microsoft.DataFactory/factories/dataflows",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "type": "MappingDataFlow",
+            "typeProperties": {
+              "sources": [
+                {
+                  "dataset": {
+                    "referenceName": "TaxidataJSONFiles",
+                    "type": "DatasetReference"
+                  },
+                  "name": "Taxidata"
+                }
+              ],
+              "sinks": [
+                {
+                  "dataset": {
+                    "referenceName": "AzureSynapseAnalyticsTable1",
+                    "type": "DatasetReference"
+                  },
+                  "name": "ToSynapse"
+                }
+              ],
+              "transformations": [
+                {
+                  "name": "DistanceQualifier"
+                }
+              ],
+              "script": "source(output(\n\t\tdoLocationId as integer,\n\t\tendLat as string,\n\t\tendLon as string,\n\t\textra as decimal(2,1),\n\t\tfareAmount as decimal(4,2),\n\t\timprovementSurcharge as decimal(1,1),\n\t\tmtaTax as decimal(1,1),\n\t\tpassengerCount as integer,\n\t\tpaymentType as integer,\n\t\tpuLocationId as integer,\n\t\trateCodeId as integer,\n\t\tstartLat as string,\n\t\tstartLon as string,\n\t\tstoreAndFwdFlag as boolean,\n\t\ttipAmount as double,\n\t\ttollsAmount as decimal(4,2),\n\t\ttotalAmount as decimal(5,2),\n\t\ttpepDropoffDateTime as string,\n\t\ttpepPickupDateTime as string,\n\t\ttripDistance as double,\n\t\tvendorID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: true,\n\tlimit: 100,\n\tignoreNoFilesFound: false,\n\trowUrlColumn: 'filename',\n\tdocumentForm: 'documentPerLine',\n\tdateFormats: ['yyyy/MM/dd'],\n\ttimestampFormats: ['MM/dd/yyyy HH:mm:ss'],\n\tpreferredIntegralType: 'integer',\n\tpreferredFractionalType: 'decimal',\n\twildcardPaths:['rawdata.json']) ~> Taxidata\nTaxidata derive(distanceQualifyer = iif(tripDistance < 2, 'short', iif(tripDistance < 7, 'middle', 'long'))) ~> DistanceQualifier\nDistanceQualifier sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tallowCopyCommand: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> ToSynapse"
+            }
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/datasets/TaxidataJSONFiles')]",
             "[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsTable1')]"
           ]
         },
