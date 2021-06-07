@@ -484,27 +484,11 @@
       "apiVersion": "2018-06-01",
       "location": "[resourceGroup().location]",
       "properties": {},
+      "identity": {
+        "type": "SystemAssigned"
+      },
       "tags": "[variables('tags')]",
       "resources": [
-        // {
-        //   "type": "linkedservices",
-        //   "name": "[variables('storageLinkedServiceName')]",
-        //   "apiVersion": "2018-06-01",
-        //   "dependsOn": [
-        //     "[variables('dataFactoryName')]",
-        //     "[variables('storageAccountName')]"
-        //   ],
-        //   "properties": {
-        //     "type": "AzureStorage",
-        //     "description": "Data Lake linked service",
-        //     "typeProperties": {
-        //       "connectionString": {
-        //         "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2018-07-01').keys[0].value)]",
-        //         "type": "SecureString"
-        //       }
-        //     }
-        //   }
-        // },
         {
           "name": "[concat(variables('dataFactoryName'), '/LinkedService-', variables('storageAccountName'))]",
           "type": "Microsoft.DataFactory/factories/linkedServices",
