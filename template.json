@@ -47,7 +47,7 @@
     "dedicatedPoolName": "[concat('sqldedicated', parameters('projectShort'))]",
     "dataFactoryName": "[concat('adf-', parameters('projectShort'), uniqueString(resourceGroup().id))]",
     "factoryId": "[concat('Microsoft.DataFactory/factories/', 'adf-', parameters('projectShort'), uniqueString(resourceGroup().id))]",
-    "storageLinkedServiceName": "[concat('LinkedService-', 'stg', parameters('projectShort'), uniqueString(resourceGroup().id))]",
+    "managedRGName": "[concat(resourceGroup().name, '-managed')]",
     "synapseDedicatedPoolConnectionString": "[concat('Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=', 'synapse', parameters('projectShort'), uniqueString(resourceGroup().id), '.sql.azuresynapse.net;Initial Catalog=', 'sqldedicated', parameters('projectShort'))]",
     "storageFSUrl": "[concat('https://', 'stg', parameters('projectShort'), uniqueString(resourceGroup().id), '.dfs.core.windows.net')]",
     "tags": {
@@ -160,9 +160,9 @@
           "sqlOnDemand": "[concat(variables('synapseAccountName'), '-ondemand.sql.azuresynapse.net')]",
           "sql": "[concat(variables('synapseAccountName'), '.sql.azuresynapse.net')]"
         },
-        "managedResourceGroupName": "bkDemoAmitManaged2",
+        "managedResourceGroupName": "[variables('managedRGName')]",
         "defaultDataLakeStorage": {
-          "accountUrl": "https://stgdemod5tsgvgndot7i2.dfs.core.windows.net",
+          "accountUrl": "[concat('https://', variables('storageAccountName'), '.dfs.core.windows.net')]",
           "filesystem": "synapsedemo"
         },
         "sqlAdministratorLogin": "sqladminuser",
