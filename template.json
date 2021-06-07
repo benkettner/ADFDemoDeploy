@@ -10,9 +10,11 @@
         "description": "A short identifier for your project that will be added to your resource names"
       }
     },
-    "utcValue": {
+    "Dynamics365_properties_typeProperties_username": {
       "type": "string",
-      "defaultValue": "[utcNow('d')]"
+      "metadata": {
+        "description": "Username to log into D365"
+      }
     },
     "Dynamics365_password": {
       "type": "secureString",
@@ -20,22 +22,24 @@
         "description": "Secure string for password of Dynamics365"
       }
     },
-    "Dynamics365_properties_typeProperties_username": {
-      "type": "string",
-      "metadata": {
-        "description": "Username to log into D365"
-      }
-    },
+    
     "Dynamics365_url": {
       "type": "string",
       "metadata": {
         "description": "URL of your D365 instance"
       }
     },
+    "utcValue": {
+      "type": "string",
+      "defaultValue": "[utcNow('d')]",
+      "metadata": {
+        "description": "The timestamp format that will be used for creating the tags in your RG - leave at default"
+      }
+    },
     "MicrosoftOpenTaxiData_sasUri": {
       "type": "secureString",
       "metadata": {
-        "description": "Secure string for sasUri of MicrosoftOpenTaxiData"
+        "description": "Secure string for sasUri of MicrosoftOpenTaxiData, already filled in, leave at default"
       },
       "defaultValue": "https://azureopendatastorage.blob.core.windows.net/?sv=blob"
     }
