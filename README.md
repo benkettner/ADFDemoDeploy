@@ -29,5 +29,5 @@ You can do this by running the following SQL command after logging into your ded
 
 ```sql
 create user [<your_ADF_name_here>] from external provider;
-exec sp_addrolemember 'db_owner' add member '<your_ADF_name_here>';
+exec sp_addrolemember 'db_owner', '<your_ADF_name_here>';
 ```
