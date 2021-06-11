@@ -54,6 +54,8 @@
     "managedRGName": "[concat(resourceGroup().name, '-managed')]",
     "synapseDedicatedPoolConnectionString": "[concat('Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=', 'synapse', parameters('projectShort'), uniqueString(resourceGroup().id), '.sql.azuresynapse.net;Initial Catalog=', 'sqldedicated', parameters('projectShort'))]",
     "storageFSUrl": "[concat('https://', 'stg', parameters('projectShort'), uniqueString(resourceGroup().id), '.dfs.core.windows.net')]",
+    "presidioAnalyzerAppName": "[concat('app-presidio-analyzer-', parameters('projectShort'), uniqueString(resourceGroup().id))]",
+    "presidioAnonymizerAppName": "[concat('app-presidio-anonymizer-', parameters('projectShort'), uniqueString(resourceGroup().id))]",
     "tags": {
       "createdOn": "[parameters('utcValue')]",
       "createdBy": "[concat('Automatic deployment for ', parameters('projectShort'))]"
@@ -480,6 +482,32 @@
       ],
       "properties": {
         "publicAccess": "Blob"
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2019-10-01",
+      "name": "presidio-app-services",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "https://raw.githubusercontent.com/microsoft/presidio/main/docs/samples/deployments/app-service/presidio-services.json",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "imageRedactor": {
+            "value": false
+          },
+          "analyzerWebAppName": {
+            "value": "[variables('presidioAnalyzerAppName')]"
+          },
+          "anonymizerWebAppName": {
+            "value": "[variables('presidioAnonymizerAppName')]"
+          },
+          "location": {
+            "value": "[resourceGroup().location]"
+          }
+        }
       }
     },
     { // create the azure data factory
