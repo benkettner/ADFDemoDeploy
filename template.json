@@ -29,6 +29,13 @@
         "description": "URL of your D365 instance"
       }
     },
+    "utcTimeTriggerDaily": {
+      "type": "string",
+      "defaultValue": "00:00:00",
+      "metadata": {
+        "description": "UTC time at which the ADF will be called, format: HH:mm:ss"
+      }
+    },
     "utcValue": {
       "type": "string",
       "defaultValue": "[utcNow('d')]",
@@ -51,7 +58,7 @@
     "dedicatedPoolName": "[concat('sqldedicated', parameters('projectShort'))]",
     "dataFactoryName": "[concat('adf-', parameters('projectShort'), uniqueString(resourceGroup().id))]",
     "factoryId": "[concat('Microsoft.DataFactory/factories/', 'adf-', parameters('projectShort'), uniqueString(resourceGroup().id))]",
-    "managedRGName": "[concat(resourceGroup().name, '-managed')]",
+    "managedRGName": "[concat(resourceGroup().name, '-', parameters('projectShort'), '-managed')]",
     "synapseDedicatedPoolConnectionString": "[concat('Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=', 'synapse', parameters('projectShort'), uniqueString(resourceGroup().id), '.sql.azuresynapse.net;Initial Catalog=', 'sqldedicated', parameters('projectShort'))]",
     "storageFSUrl": "[concat('https://', 'stg', parameters('projectShort'), uniqueString(resourceGroup().id), '.dfs.core.windows.net')]",
     "presidioAnalyzerAppName": "[concat('app-presidio-analyzer-', parameters('projectShort'), uniqueString(resourceGroup().id))]",
@@ -594,6 +601,7 @@
           "type": "Microsoft.DataFactory/factories/pipelines",
           "apiVersion": "2018-06-01",
           "properties": {
+            "description": "This pipeline transfers the sales activities from D365 to the cosmos db",
             "activities": [
               {
                 "name": "Copy Sales Activity",
@@ -653,6 +661,7 @@
           "type": "Microsoft.DataFactory/factories/pipelines",
           "apiVersion": "2018-06-01",
           "properties": {
+            "description": "This pipeline transfers the sales leads from D365 to the Azure Synapse dedicated SQL pool",
             "activities": [
               {
                 "name": "Copy D365",
@@ -1111,7 +1120,7 @@
                   "name": "SplitByLeads"
                 }
               ],
-              "script": "source(output(\n\t\tactivityadditionalparams as string,\n\t\tactivityid as string,\n\t\tactivitytypecode as string,\n\t\tactualdurationminutes as integer,\n\t\tactualend as timestamp,\n\t\tactualstart as timestamp,\n\t\tcommunity as string,\n\t\tcreatedby as string,\n\t\tcreatedbyname as string,\n\t\tcreatedbyyominame as string,\n\t\tcreatedon as timestamp,\n\t\tcreatedonbehalfby as string,\n\t\tcreatedonbehalfbyname as string,\n\t\tcreatedonbehalfbyyominame as string,\n\t\tdeliverylastattemptedon as string,\n\t\tdeliveryprioritycode as integer,\n\t\tdescription as string,\n\t\texchangeitemid as string,\n\t\texchangerate as integer,\n\t\texchangeweblink as string,\n\t\tinstancetypecode as integer,\n\t\tisbilled as boolean,\n\t\tismapiprivate as boolean,\n\t\tisregularactivity as boolean,\n\t\tisworkflowcreated as boolean,\n\t\tlastonholdtime as string,\n\t\tleftvoicemail as boolean,\n\t\tmodifiedby as string,\n\t\tmodifiedbyname as string,\n\t\tmodifiedbyyominame as string,\n\t\tmodifiedon as timestamp,\n\t\tmodifiedonbehalfby as string,\n\t\tmodifiedonbehalfbyname as string,\n\t\tmodifiedonbehalfbyyominame as string,\n\t\tonholdtime as string,\n\t\townerid as string,\n\t\towneridname as string,\n\t\towneridtype as string,\n\t\towneridyominame as string,\n\t\towningbusinessunit as string,\n\t\towningteam as string,\n\t\towninguser as string,\n\t\tpostponeactivityprocessinguntil as string,\n\t\tprioritycode as integer,\n\t\tprocessid as string,\n\t\tregardingobjectid as string,\n\t\tregardingobjectidname as string,\n\t\tregardingobjectidyominame as string,\n\t\tregardingobjecttypecode as string,\n\t\tscheduleddurationminutes as integer,\n\t\tscheduledend as timestamp,\n\t\tscheduledstart as timestamp,\n\t\tsendermailboxid as string,\n\t\tsendermailboxidname as string,\n\t\tsenton as string,\n\t\tseriesid as string,\n\t\tserviceid as string,\n\t\tserviceidname as string,\n\t\tslaid as string,\n\t\tslainvokedid as string,\n\t\tslainvokedidname as string,\n\t\tslaname as string,\n\t\tsortdate as string,\n\t\tstageid as string,\n\t\tstatecode as integer,\n\t\tstatuscode as integer,\n\t\tsubject as string,\n\t\ttimezoneruleversionnumber as integer,\n\t\ttransactioncurrencyid as string,\n\t\ttransactioncurrencyidname as string,\n\t\ttraversedpath as string,\n\t\tutcconversiontimezonecode as string,\n\t\tversionnumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tlimit: 100,\n\tformat: 'document') ~> CosmosActivitities\nsource(output(\n\t\taccountid as string,\n\t\taccountidname as string,\n\t\taccountidyominame as string,\n\t\taddress1_addressid as string,\n\t\taddress1_addresstypecode as integer,\n\t\taddress1_city as string,\n\t\taddress1_composite as string,\n\t\taddress1_country as string,\n\t\taddress1_county as string,\n\t\taddress1_fax as string,\n\t\taddress1_latitude as double,\n\t\taddress1_line1 as string,\n\t\taddress1_line2 as string,\n\t\taddress1_line3 as string,\n\t\taddress1_longitude as double,\n\t\taddress1_name as string,\n\t\taddress1_postalcode as string,\n\t\taddress1_postofficebox as string,\n\t\taddress1_shippingmethodcode as integer,\n\t\taddress1_stateorprovince as string,\n\t\taddress1_telephone1 as string,\n\t\taddress1_telephone2 as string,\n\t\taddress1_telephone3 as string,\n\t\taddress1_upszone as string,\n\t\taddress1_utcoffset as integer,\n\t\taddress2_addressid as string,\n\t\taddress2_addresstypecode as integer,\n\t\taddress2_city as string,\n\t\taddress2_composite as string,\n\t\taddress2_country as string,\n\t\taddress2_county as string,\n\t\taddress2_fax as string,\n\t\taddress2_latitude as double,\n\t\taddress2_line1 as string,\n\t\taddress2_line2 as string,\n\t\taddress2_line3 as string,\n\t\taddress2_longitude as double,\n\t\taddress2_name as string,\n\t\taddress2_postalcode as string,\n\t\taddress2_postofficebox as string,\n\t\taddress2_shippingmethodcode as integer,\n\t\taddress2_stateorprovince as string,\n\t\taddress2_telephone1 as string,\n\t\taddress2_telephone2 as string,\n\t\taddress2_telephone3 as string,\n\t\taddress2_upszone as string,\n\t\taddress2_utcoffset as integer,\n\t\tbudgetamount as decimal(38,18),\n\t\tbudgetamount_base as decimal(38,18),\n\t\tbudgetstatus as integer,\n\t\tbusinesscard as string,\n\t\tbusinesscardattributes as string,\n\t\tcampaignid as string,\n\t\tcampaignidname as string,\n\t\tcompanyname as string,\n\t\tconfirminterest as boolean,\n\t\tcontactid as string,\n\t\tcontactidname as string,\n\t\tcontactidyominame as string,\n\t\tcreatedby as string,\n\t\tcreatedbyname as string,\n\t\tcreatedbyyominame as string,\n\t\tcreatedon as timestamp,\n\t\tcreatedonbehalfby as string,\n\t\tcreatedonbehalfbyname as string,\n\t\tcreatedonbehalfbyyominame as string,\n\t\tcustomerid as string,\n\t\tcustomeridname as string,\n\t\tcustomeridtype as string,\n\t\tcustomeridyominame as string,\n\t\tdecisionmaker as boolean,\n\t\tdescription as string,\n\t\tdonotbulkemail as boolean,\n\t\tdonotemail as boolean,\n\t\tdonotfax as boolean,\n\t\tdonotphone as boolean,\n\t\tdonotpostalmail as boolean,\n\t\tdonotsendmm as boolean,\n\t\temailaddress1 as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\tentityimage_timestamp as long,\n\t\tentityimage_url as string,\n\t\tentityimageid as string,\n\t\testimatedamount as decimal(38,18),\n\t\testimatedamount_base as decimal(38,18),\n\t\testimatedclosedate as timestamp,\n\t\testimatedvalue as double,\n\t\tevaluatefit as boolean,\n\t\texchangerate as decimal(38,18),\n\t\tfax as string,\n\t\tfirstname as string,\n\t\tfollowemail as boolean,\n\t\tfullname as string,\n\t\timportsequencenumber as integer,\n\t\tindustrycode as integer,\n\t\tinitialcommunication as integer,\n\t\tisautocreate as boolean,\n\t\tisprivate as boolean,\n\t\tjobtitle as string,\n\t\tlastname as string,\n\t\tlastonholdtime as timestamp,\n\t\tlastusedincampaign as timestamp,\n\t\tleadid as string,\n\t\tleadqualitycode as integer,\n\t\tleadsourcecode as integer,\n\t\tmasterid as string,\n\t\tmasterleadidname as string,\n\t\tmasterleadidyominame as string,\n\t\tmerged as boolean,\n\t\tmiddlename as string,\n\t\tmobilephone as string,\n\t\tmodifiedby as string,\n\t\tmodifiedbyname as string,\n\t\tmodifiedbyyominame as string,\n\t\tmodifiedon as timestamp,\n\t\tmodifiedonbehalfby as string,\n\t\tmodifiedonbehalfbyname as string,\n\t\tmodifiedonbehalfbyyominame as string,\n\t\tmsdyn_gdproptout as boolean,\n\t\tmsdyn_ordertype as integer,\n\t\tneed as integer,\n\t\tnumberofemployees as integer,\n\t\tonholdtime as integer,\n\t\toriginatingcaseid as string,\n\t\toriginatingcaseidname as string,\n\t\toverriddencreatedon as timestamp,\n\t\townerid as string,\n\t\towneridname as string,\n\t\towneridtype as string,\n\t\towneridyominame as string,\n\t\towningbusinessunit as string,\n\t\towningteam as string,\n\t\towninguser as string,\n\t\tpager as string,\n\t\tparentaccountid as string,\n\t\tparentaccountidname as string,\n\t\tparentaccountidyominame as string,\n\t\tparentcontactid as string,\n\t\tparentcontactidname as string,\n\t\tparentcontactidyominame as string,\n\t\tparticipatesinworkflow as boolean,\n\t\tpreferredcontactmethodcode as integer,\n\t\tprioritycode as integer,\n\t\tprocessid as string,\n\t\tpurchaseprocess as integer,\n\t\tpurchasetimeframe as integer,\n\t\tqualificationcomments as string,\n\t\tqualifyingopportunityid as string,\n\t\tqualifyingopportunityidname as string,\n\t\trelatedobjectid as string,\n\t\trelatedobjectidname as string,\n\t\trevenue as decimal(38,18),\n\t\trevenue_base as decimal(38,18),\n\t\tsalesstage as integer,\n\t\tsalesstagecode as integer,\n\t\tsalutation as string,\n\t\tschedulefollowup_prospect as timestamp,\n\t\tschedulefollowup_qualify as timestamp,\n\t\tsic as string,\n\t\tslaid as string,\n\t\tslainvokedid as string,\n\t\tslainvokedidname as string,\n\t\tslaname as string,\n\t\tstageid as string,\n\t\tstatecode as integer,\n\t\tstatuscode as integer,\n\t\tsubject as string,\n\t\tteamsfollowed as integer,\n\t\ttelephone1 as string,\n\t\ttelephone2 as string,\n\t\ttelephone3 as string,\n\t\ttimespentbymeonemailandmeetings as string,\n\t\ttimezoneruleversionnumber as integer,\n\t\ttransactioncurrencyid as string,\n\t\ttransactioncurrencyidname as string,\n\t\ttraversedpath as string,\n\t\tutcconversiontimezonecode as integer,\n\t\tversionnumber as long,\n\t\twebsiteurl as string,\n\t\tyomicompanyname as string,\n\t\tyomifirstname as string,\n\t\tyomifullname as string,\n\t\tyomilastname as string,\n\t\tyomimiddlename as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tlimit: 100,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select * from dbo.D365lead',\n\tformat: 'query',\n\tstaged: false) ~> SQLLeads\nCosmosActivitities, SQLLeads join(regardingobjectid <=> leadid ,\n\tjoinType:'left',\n\tbroadcast: 'both')~> LeftJoinActivitiesLeads\nLeftJoinActivitiesLeads derive(ActivityHasLead = not( isNull( leadid ) )) ~> HasLead\nHasLead split(ActivityHasLead,\n\tdisjoint: false) ~> SplitByLeads@(ActivitiesWithLead, ActivitiesWithoutLead)\nSplitByLeads@ActivitiesWithLead sink(allowSchemaDrift: false,\n\tvalidateSchema: false,\n\tinput(\n\t\tcreatedOn as timestamp,\n\t\tcreatedBy as string,\n\t\tmodifiedOn as timestamp,\n\t\tmodifiedBy as string,\n\t\tcreatedOnBehalfBy as string,\n\t\tmodifiedOnBehalfBy as string,\n\t\townerId as string,\n\t\townerIdType as string,\n\t\towningBusinessUnit as string,\n\t\towningUser as string,\n\t\towningTeam as string,\n\t\ttimeZoneRuleVersionNumber as integer,\n\t\tUTCConversionTimeZoneCode as integer,\n\t\tversionNumber as long,\n\t\tactivityId as string,\n\t\tactivityTypeCode as string,\n\t\tisBilled as boolean,\n\t\tisRegularActivity as boolean,\n\t\tisWorkflowCreated as boolean,\n\t\tpriorityCode as integer,\n\t\tpriorityCode_display as string,\n\t\tregardingObjectId as string,\n\t\tregardingObjectTypeCode as string,\n\t\tscheduledEnd as timestamp,\n\t\tscheduledStart as timestamp,\n\t\tsortDate as timestamp,\n\t\tsubject as string,\n\t\tscheduledDurationMinutes as integer,\n\t\tactualDurationMinutes as integer,\n\t\tactualEnd as timestamp,\n\t\tactualStart as timestamp,\n\t\tactivityAdditionalParams as string,\n\t\tinstanceTypeCode as integer,\n\t\tinstanceTypeCode_display as string,\n\t\tisMapiPrivate as boolean,\n\t\tseriesId as string,\n\t\tsentOn as timestamp,\n\t\tsenderMailboxId as string,\n\t\tdeliveryPriorityCode as integer,\n\t\tdeliveryPriorityCode_display as string,\n\t\tcommunity as integer,\n\t\tcommunity_display as string,\n\t\tleftVoiceMail as boolean,\n\t\tdeliveryLastAttemptedOn as timestamp,\n\t\texchangeItemId as string,\n\t\texchangeWebLink as string,\n\t\tpostponeActivityProcessingUntil as timestamp,\n\t\tdescription as string,\n\t\tstateCode as integer,\n\t\tstateCode_display as string,\n\t\tstatusCode as integer,\n\t\tstatusCode_display as string,\n\t\ttransactionCurrencyId as string,\n\t\texchangeRate as decimal(18,2),\n\t\tallActivityParties as string,\n\t\ttraversedPath as string,\n\t\tprocessId as string,\n\t\tstageId as string,\n\t\tSLAId as string,\n\t\tSLAInvokedId as string,\n\t\tonHoldTime as integer,\n\t\tlastOnHoldTime as timestamp\n\t),\n\tentity: 'core/applicationCommon/Activity.cdm.json/Activity',\n\tformat: 'cdm',\n\tmanifestType: 'manifest',\n\tfolderPath: 'cdm/activities_with_leads/',\n\tfileSystem: 'exports',\n\tcolumnDelimiter: ',',\n\tcolumnNamesAsHeader: false,\n\ttruncate: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CDMActivitiesWithLeads\nSplitByLeads@ActivitiesWithoutLead sink(allowSchemaDrift: false,\n\tvalidateSchema: false,\n\tinput(\n\t\tcreatedOn as timestamp,\n\t\tcreatedBy as string,\n\t\tmodifiedOn as timestamp,\n\t\tmodifiedBy as string,\n\t\tcreatedOnBehalfBy as string,\n\t\tmodifiedOnBehalfBy as string,\n\t\townerId as string,\n\t\townerIdType as string,\n\t\towningBusinessUnit as string,\n\t\towningUser as string,\n\t\towningTeam as string,\n\t\ttimeZoneRuleVersionNumber as integer,\n\t\tUTCConversionTimeZoneCode as integer,\n\t\tversionNumber as long,\n\t\tactivityId as string,\n\t\tactivityTypeCode as string,\n\t\tisBilled as boolean,\n\t\tisRegularActivity as boolean,\n\t\tisWorkflowCreated as boolean,\n\t\tpriorityCode as integer,\n\t\tpriorityCode_display as string,\n\t\tregardingObjectId as string,\n\t\tregardingObjectTypeCode as string,\n\t\tscheduledEnd as timestamp,\n\t\tscheduledStart as timestamp,\n\t\tsortDate as timestamp,\n\t\tsubject as string,\n\t\tscheduledDurationMinutes as integer,\n\t\tactualDurationMinutes as integer,\n\t\tactualEnd as timestamp,\n\t\tactualStart as timestamp,\n\t\tactivityAdditionalParams as string,\n\t\tinstanceTypeCode as integer,\n\t\tinstanceTypeCode_display as string,\n\t\tisMapiPrivate as boolean,\n\t\tseriesId as string,\n\t\tsentOn as timestamp,\n\t\tsenderMailboxId as string,\n\t\tdeliveryPriorityCode as integer,\n\t\tdeliveryPriorityCode_display as string,\n\t\tcommunity as integer,\n\t\tcommunity_display as string,\n\t\tleftVoiceMail as boolean,\n\t\tdeliveryLastAttemptedOn as timestamp,\n\t\texchangeItemId as string,\n\t\texchangeWebLink as string,\n\t\tpostponeActivityProcessingUntil as timestamp,\n\t\tdescription as string,\n\t\tstateCode as integer,\n\t\tstateCode_display as string,\n\t\tstatusCode as integer,\n\t\tstatusCode_display as string,\n\t\ttransactionCurrencyId as string,\n\t\texchangeRate as decimal(18,2),\n\t\tallActivityParties as string,\n\t\ttraversedPath as string,\n\t\tprocessId as string,\n\t\tstageId as string,\n\t\tSLAId as string,\n\t\tSLAInvokedId as string,\n\t\tonHoldTime as integer,\n\t\tlastOnHoldTime as timestamp\n\t),\n\tentity: 'core/applicationCommon/Activity.cdm.json/Activity',\n\tformat: 'cdm',\n\tmanifestType: 'manifest',\n\tfolderPath: 'cdm/activities_without_leads',\n\tfileSystem: 'exports',\n\tcolumnDelimiter: ',',\n\tcolumnNamesAsHeader: false,\n\ttruncate: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CDMActivitiesWithoutLeads"
+              "script": "source(output(\n\t\tactivityadditionalparams as string,\n\t\tactivityid as string,\n\t\tactivitytypecode as string,\n\t\tactualdurationminutes as integer,\n\t\tactualend as timestamp,\n\t\tactualstart as timestamp,\n\t\tcommunity as string,\n\t\tcreatedby as string,\n\t\tcreatedbyname as string,\n\t\tcreatedbyyominame as string,\n\t\tcreatedon as timestamp,\n\t\tcreatedonbehalfby as string,\n\t\tcreatedonbehalfbyname as string,\n\t\tcreatedonbehalfbyyominame as string,\n\t\tdeliverylastattemptedon as string,\n\t\tdeliveryprioritycode as integer,\n\t\tdescription as string,\n\t\texchangeitemid as string,\n\t\texchangerate as integer,\n\t\texchangeweblink as string,\n\t\tinstancetypecode as integer,\n\t\tisbilled as boolean,\n\t\tismapiprivate as boolean,\n\t\tisregularactivity as boolean,\n\t\tisworkflowcreated as boolean,\n\t\tlastonholdtime as string,\n\t\tleftvoicemail as boolean,\n\t\tmodifiedby as string,\n\t\tmodifiedbyname as string,\n\t\tmodifiedbyyominame as string,\n\t\tmodifiedon as timestamp,\n\t\tmodifiedonbehalfby as string,\n\t\tmodifiedonbehalfbyname as string,\n\t\tmodifiedonbehalfbyyominame as string,\n\t\tonholdtime as string,\n\t\townerid as string,\n\t\towneridname as string,\n\t\towneridtype as string,\n\t\towneridyominame as string,\n\t\towningbusinessunit as string,\n\t\towningteam as string,\n\t\towninguser as string,\n\t\tpostponeactivityprocessinguntil as string,\n\t\tprioritycode as integer,\n\t\tprocessid as string,\n\t\tregardingobjectid as string,\n\t\tregardingobjectidname as string,\n\t\tregardingobjectidyominame as string,\n\t\tregardingobjecttypecode as string,\n\t\tscheduleddurationminutes as integer,\n\t\tscheduledend as timestamp,\n\t\tscheduledstart as timestamp,\n\t\tsendermailboxid as string,\n\t\tsendermailboxidname as string,\n\t\tsenton as string,\n\t\tseriesid as string,\n\t\tserviceid as string,\n\t\tserviceidname as string,\n\t\tslaid as string,\n\t\tslainvokedid as string,\n\t\tslainvokedidname as string,\n\t\tslaname as string,\n\t\tsortdate as string,\n\t\tstageid as string,\n\t\tstatecode as integer,\n\t\tstatuscode as integer,\n\t\tsubject as string,\n\t\ttimezoneruleversionnumber as integer,\n\t\ttransactioncurrencyid as string,\n\t\ttransactioncurrencyidname as string,\n\t\ttraversedpath as string,\n\t\tutcconversiontimezonecode as string,\n\t\tversionnumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tlimit: 100,\n\tformat: 'document') ~> CosmosActivitities\nsource(output(\n\t\taccountid as string,\n\t\taccountidname as string,\n\t\taccountidyominame as string,\n\t\taddress1_addressid as string,\n\t\taddress1_addresstypecode as integer,\n\t\taddress1_city as string,\n\t\taddress1_composite as string,\n\t\taddress1_country as string,\n\t\taddress1_county as string,\n\t\taddress1_fax as string,\n\t\taddress1_latitude as double,\n\t\taddress1_line1 as string,\n\t\taddress1_line2 as string,\n\t\taddress1_line3 as string,\n\t\taddress1_longitude as double,\n\t\taddress1_name as string,\n\t\taddress1_postalcode as string,\n\t\taddress1_postofficebox as string,\n\t\taddress1_shippingmethodcode as integer,\n\t\taddress1_stateorprovince as string,\n\t\taddress1_telephone1 as string,\n\t\taddress1_telephone2 as string,\n\t\taddress1_telephone3 as string,\n\t\taddress1_upszone as string,\n\t\taddress1_utcoffset as integer,\n\t\taddress2_addressid as string,\n\t\taddress2_addresstypecode as integer,\n\t\taddress2_city as string,\n\t\taddress2_composite as string,\n\t\taddress2_country as string,\n\t\taddress2_county as string,\n\t\taddress2_fax as string,\n\t\taddress2_latitude as double,\n\t\taddress2_line1 as string,\n\t\taddress2_line2 as string,\n\t\taddress2_line3 as string,\n\t\taddress2_longitude as double,\n\t\taddress2_name as string,\n\t\taddress2_postalcode as string,\n\t\taddress2_postofficebox as string,\n\t\taddress2_shippingmethodcode as integer,\n\t\taddress2_stateorprovince as string,\n\t\taddress2_telephone1 as string,\n\t\taddress2_telephone2 as string,\n\t\taddress2_telephone3 as string,\n\t\taddress2_upszone as string,\n\t\taddress2_utcoffset as integer,\n\t\tbudgetamount as decimal(38,18),\n\t\tbudgetamount_base as decimal(38,18),\n\t\tbudgetstatus as integer,\n\t\tbusinesscard as string,\n\t\tbusinesscardattributes as string,\n\t\tcampaignid as string,\n\t\tcampaignidname as string,\n\t\tcompanyname as string,\n\t\tconfirminterest as boolean,\n\t\tcontactid as string,\n\t\tcontactidname as string,\n\t\tcontactidyominame as string,\n\t\tcreatedby as string,\n\t\tcreatedbyname as string,\n\t\tcreatedbyyominame as string,\n\t\tcreatedon as timestamp,\n\t\tcreatedonbehalfby as string,\n\t\tcreatedonbehalfbyname as string,\n\t\tcreatedonbehalfbyyominame as string,\n\t\tcustomerid as string,\n\t\tcustomeridname as string,\n\t\tcustomeridtype as string,\n\t\tcustomeridyominame as string,\n\t\tdecisionmaker as boolean,\n\t\tdescription as string,\n\t\tdonotbulkemail as boolean,\n\t\tdonotemail as boolean,\n\t\tdonotfax as boolean,\n\t\tdonotphone as boolean,\n\t\tdonotpostalmail as boolean,\n\t\tdonotsendmm as boolean,\n\t\temailaddress1 as string,\n\t\temailaddress2 as string,\n\t\temailaddress3 as string,\n\t\tentityimage_timestamp as long,\n\t\tentityimage_url as string,\n\t\tentityimageid as string,\n\t\testimatedamount as decimal(38,18),\n\t\testimatedamount_base as decimal(38,18),\n\t\testimatedclosedate as timestamp,\n\t\testimatedvalue as double,\n\t\tevaluatefit as boolean,\n\t\texchangerate as decimal(38,18),\n\t\tfax as string,\n\t\tfirstname as string,\n\t\tfollowemail as boolean,\n\t\tfullname as string,\n\t\timportsequencenumber as integer,\n\t\tindustrycode as integer,\n\t\tinitialcommunication as integer,\n\t\tisautocreate as boolean,\n\t\tisprivate as boolean,\n\t\tjobtitle as string,\n\t\tlastname as string,\n\t\tlastonholdtime as timestamp,\n\t\tlastusedincampaign as timestamp,\n\t\tleadid as string,\n\t\tleadqualitycode as integer,\n\t\tleadsourcecode as integer,\n\t\tmasterid as string,\n\t\tmasterleadidname as string,\n\t\tmasterleadidyominame as string,\n\t\tmerged as boolean,\n\t\tmiddlename as string,\n\t\tmobilephone as string,\n\t\tmodifiedby as string,\n\t\tmodifiedbyname as string,\n\t\tmodifiedbyyominame as string,\n\t\tmodifiedon as timestamp,\n\t\tmodifiedonbehalfby as string,\n\t\tmodifiedonbehalfbyname as string,\n\t\tmodifiedonbehalfbyyominame as string,\n\t\tmsdyn_gdproptout as boolean,\n\t\tmsdyn_ordertype as integer,\n\t\tneed as integer,\n\t\tnumberofemployees as integer,\n\t\tonholdtime as integer,\n\t\toriginatingcaseid as string,\n\t\toriginatingcaseidname as string,\n\t\toverriddencreatedon as timestamp,\n\t\townerid as string,\n\t\towneridname as string,\n\t\towneridtype as string,\n\t\towneridyominame as string,\n\t\towningbusinessunit as string,\n\t\towningteam as string,\n\t\towninguser as string,\n\t\tpager as string,\n\t\tparentaccountid as string,\n\t\tparentaccountidname as string,\n\t\tparentaccountidyominame as string,\n\t\tparentcontactid as string,\n\t\tparentcontactidname as string,\n\t\tparentcontactidyominame as string,\n\t\tparticipatesinworkflow as boolean,\n\t\tpreferredcontactmethodcode as integer,\n\t\tprioritycode as integer,\n\t\tprocessid as string,\n\t\tpurchaseprocess as integer,\n\t\tpurchasetimeframe as integer,\n\t\tqualificationcomments as string,\n\t\tqualifyingopportunityid as string,\n\t\tqualifyingopportunityidname as string,\n\t\trelatedobjectid as string,\n\t\trelatedobjectidname as string,\n\t\trevenue as decimal(38,18),\n\t\trevenue_base as decimal(38,18),\n\t\tsalesstage as integer,\n\t\tsalesstagecode as integer,\n\t\tsalutation as string,\n\t\tschedulefollowup_prospect as timestamp,\n\t\tschedulefollowup_qualify as timestamp,\n\t\tsic as string,\n\t\tslaid as string,\n\t\tslainvokedid as string,\n\t\tslainvokedidname as string,\n\t\tslaname as string,\n\t\tstageid as string,\n\t\tstatecode as integer,\n\t\tstatuscode as integer,\n\t\tsubject as string,\n\t\tteamsfollowed as integer,\n\t\ttelephone1 as string,\n\t\ttelephone2 as string,\n\t\ttelephone3 as string,\n\t\ttimespentbymeonemailandmeetings as string,\n\t\ttimezoneruleversionnumber as integer,\n\t\ttransactioncurrencyid as string,\n\t\ttransactioncurrencyidname as string,\n\t\ttraversedpath as string,\n\t\tutcconversiontimezonecode as integer,\n\t\tversionnumber as long,\n\t\twebsiteurl as string,\n\t\tyomicompanyname as string,\n\t\tyomifirstname as string,\n\t\tyomifullname as string,\n\t\tyomilastname as string,\n\t\tyomimiddlename as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tlimit: 100,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select * from dbo.D365lead',\n\tformat: 'query',\n\tstaged: false) ~> SQLLeads\nCosmosActivitities, SQLLeads join(regardingobjectid <=> leadid,\n\tjoinType:'left',\n\tbroadcast: 'both')~> LeftJoinActivitiesLeads\nLeftJoinActivitiesLeads derive(ActivityHasLead = not( isNull( leadid ) )) ~> HasLead\nHasLead split(ActivityHasLead,\n\tdisjoint: false) ~> SplitByLeads@(ActivitiesWithLead, ActivitiesWithoutLead)\nSplitByLeads@ActivitiesWithLead sink(allowSchemaDrift: false,\n\tvalidateSchema: false,\n\tinput(\n\t\tcreatedOn as timestamp,\n\t\tcreatedBy as string,\n\t\tmodifiedOn as timestamp,\n\t\tmodifiedBy as string,\n\t\tcreatedOnBehalfBy as string,\n\t\tmodifiedOnBehalfBy as string,\n\t\townerId as string,\n\t\townerIdType as string,\n\t\towningBusinessUnit as string,\n\t\towningUser as string,\n\t\towningTeam as string,\n\t\ttimeZoneRuleVersionNumber as integer,\n\t\tUTCConversionTimeZoneCode as integer,\n\t\tversionNumber as long,\n\t\tactivityId as string,\n\t\tactivityTypeCode as string,\n\t\tisBilled as boolean,\n\t\tisRegularActivity as boolean,\n\t\tisWorkflowCreated as boolean,\n\t\tpriorityCode as integer,\n\t\tpriorityCode_display as string,\n\t\tregardingObjectId as string,\n\t\tregardingObjectTypeCode as string,\n\t\tscheduledEnd as timestamp,\n\t\tscheduledStart as timestamp,\n\t\tsortDate as timestamp,\n\t\tsubject as string,\n\t\tscheduledDurationMinutes as integer,\n\t\tactualDurationMinutes as integer,\n\t\tactualEnd as timestamp,\n\t\tactualStart as timestamp,\n\t\tactivityAdditionalParams as string,\n\t\tinstanceTypeCode as integer,\n\t\tinstanceTypeCode_display as string,\n\t\tisMapiPrivate as boolean,\n\t\tseriesId as string,\n\t\tsentOn as timestamp,\n\t\tsenderMailboxId as string,\n\t\tdeliveryPriorityCode as integer,\n\t\tdeliveryPriorityCode_display as string,\n\t\tcommunity as integer,\n\t\tcommunity_display as string,\n\t\tleftVoiceMail as boolean,\n\t\tdeliveryLastAttemptedOn as timestamp,\n\t\texchangeItemId as string,\n\t\texchangeWebLink as string,\n\t\tpostponeActivityProcessingUntil as timestamp,\n\t\tdescription as string,\n\t\tstateCode as integer,\n\t\tstateCode_display as string,\n\t\tstatusCode as integer,\n\t\tstatusCode_display as string,\n\t\ttransactionCurrencyId as string,\n\t\texchangeRate as decimal(18,2),\n\t\tallActivityParties as string,\n\t\ttraversedPath as string,\n\t\tprocessId as string,\n\t\tstageId as string,\n\t\tSLAId as string,\n\t\tSLAInvokedId as string,\n\t\tonHoldTime as integer,\n\t\tlastOnHoldTime as timestamp\n\t),\n\tentity: 'core/applicationCommon/Activity.cdm.json/Activity',\n\tformat: 'cdm',\n\tmanifestType: 'manifest',\n\tfolderPath: (concat(\"cdm/activities_with_leads/\", toString(year(currentDate())), \"/\", toString(month(currentDate())), \"/\", toString(dayOfMonth(currentDate())), \"/\")),\n\tfileSystem: 'exports',\n\tcolumnDelimiter: ',',\n\tcolumnNamesAsHeader: false,\n\ttruncate: false,\n\tumask: 0022,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CDMActivitiesWithLeads\nSplitByLeads@ActivitiesWithoutLead sink(allowSchemaDrift: false,\n\tvalidateSchema: false,\n\tinput(\n\t\tcreatedOn as timestamp,\n\t\tcreatedBy as string,\n\t\tmodifiedOn as timestamp,\n\t\tmodifiedBy as string,\n\t\tcreatedOnBehalfBy as string,\n\t\tmodifiedOnBehalfBy as string,\n\t\townerId as string,\n\t\townerIdType as string,\n\t\towningBusinessUnit as string,\n\t\towningUser as string,\n\t\towningTeam as string,\n\t\ttimeZoneRuleVersionNumber as integer,\n\t\tUTCConversionTimeZoneCode as integer,\n\t\tversionNumber as long,\n\t\tactivityId as string,\n\t\tactivityTypeCode as string,\n\t\tisBilled as boolean,\n\t\tisRegularActivity as boolean,\n\t\tisWorkflowCreated as boolean,\n\t\tpriorityCode as integer,\n\t\tpriorityCode_display as string,\n\t\tregardingObjectId as string,\n\t\tregardingObjectTypeCode as string,\n\t\tscheduledEnd as timestamp,\n\t\tscheduledStart as timestamp,\n\t\tsortDate as timestamp,\n\t\tsubject as string,\n\t\tscheduledDurationMinutes as integer,\n\t\tactualDurationMinutes as integer,\n\t\tactualEnd as timestamp,\n\t\tactualStart as timestamp,\n\t\tactivityAdditionalParams as string,\n\t\tinstanceTypeCode as integer,\n\t\tinstanceTypeCode_display as string,\n\t\tisMapiPrivate as boolean,\n\t\tseriesId as string,\n\t\tsentOn as timestamp,\n\t\tsenderMailboxId as string,\n\t\tdeliveryPriorityCode as integer,\n\t\tdeliveryPriorityCode_display as string,\n\t\tcommunity as integer,\n\t\tcommunity_display as string,\n\t\tleftVoiceMail as boolean,\n\t\tdeliveryLastAttemptedOn as timestamp,\n\t\texchangeItemId as string,\n\t\texchangeWebLink as string,\n\t\tpostponeActivityProcessingUntil as timestamp,\n\t\tdescription as string,\n\t\tstateCode as integer,\n\t\tstateCode_display as string,\n\t\tstatusCode as integer,\n\t\tstatusCode_display as string,\n\t\ttransactionCurrencyId as string,\n\t\texchangeRate as decimal(18,2),\n\t\tallActivityParties as string,\n\t\ttraversedPath as string,\n\t\tprocessId as string,\n\t\tstageId as string,\n\t\tSLAId as string,\n\t\tSLAInvokedId as string,\n\t\tonHoldTime as integer,\n\t\tlastOnHoldTime as timestamp\n\t),\n\tentity: 'core/applicationCommon/Activity.cdm.json/Activity',\n\tformat: 'cdm',\n\tmanifestType: 'manifest',\n\tfolderPath: (concat(\"cdm/activities_without_leads/\", toString(year(currentDate())), \"/\", toString(month(currentDate())), \"/\", toString(dayOfMonth(currentDate())), \"/\")),\n\tfileSystem: 'exports',\n\tcolumnDelimiter: ',',\n\tcolumnNamesAsHeader: false,\n\ttruncate: false,\n\tumask: 0022,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CDMActivitiesWithoutLeads"
             }
           },
           "dependsOn": [
@@ -1162,6 +1171,7 @@
           "type": "Microsoft.DataFactory/factories/pipelines",
           "apiVersion": "2018-06-01",
           "properties": {
+            "description": "Pipeline calls the dataflow that transforms the data from the New York taxi open dataset",
             "activities": [
               {
                 "name": "Run Data flow",
@@ -1215,6 +1225,7 @@
           "type": "Microsoft.DataFactory/factories/pipelines",
           "apiVersion": "2018-06-01",
           "properties": {
+            "description": "This pipeline calls the dataflow that transforms the data from two D365 sources, joins it and then stores it in CDM entities",
             "activities": [
               {
                 "name": "Run D365 Dataflow",
@@ -1256,6 +1267,141 @@
             "[variables('dataFactoryName')]",
             "[concat(variables('factoryId'), '/dataflows/DFActivitiesAndLeads')]"
 
+          ]
+        },
+        {
+          "name": "[concat(variables('dataFactoryName'), '/00-ControlPipeline')]",
+          "type": "Microsoft.DataFactory/factories/pipelines",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "description": "This is the master pipeline that will be called daily to run all required pipelines. ",
+            "activities": [
+              {
+                "name": "Execute D365 01 Copy",
+                "type": "ExecutePipeline",
+                "dependsOn": [],
+                "userProperties": [],
+                "typeProperties": {
+                  "pipeline": {
+                    "referenceName": "01-CopyD365SalesActivityToCosmos",
+                    "type": "PipelineReference"
+                  },
+                  "waitOnCompletion": true
+                }
+              },
+              {
+                "name": "Execute D365 02 Copy",
+                "type": "ExecutePipeline",
+                "dependsOn": [],
+                "userProperties": [],
+                "typeProperties": {
+                  "pipeline": {
+                    "referenceName": "02-CopyD365SalesLeadToSQL",
+                    "type": "PipelineReference"
+                  },
+                  "waitOnCompletion": true
+                }
+              },
+              {
+                "name": "Execute D365 03 Transform",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                  {
+                    "activity": "Execute D365 01 Copy",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  },
+                  {
+                    "activity": "Execute D365 02 Copy",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                  "pipeline": {
+                    "referenceName": "03-TransformDynamicsData",
+                    "type": "PipelineReference"
+                  },
+                  "waitOnCompletion": true
+                }
+              },
+              {
+                "name": "Execute OpenData 01 Copy",
+                "type": "ExecutePipeline",
+                "dependsOn": [],
+                "userProperties": [],
+                "typeProperties": {
+                  "pipeline": {
+                    "referenceName": "01-StageOpenData",
+                    "type": "PipelineReference"
+                  },
+                  "waitOnCompletion": true
+                }
+              },
+              {
+                "name": "Execute OpenData 02 Transform",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                  {
+                    "activity": "Execute OpenData 01 Copy",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                  "pipeline": {
+                    "referenceName": "02-TransformTaxiData",
+                    "type": "PipelineReference"
+                  },
+                  "waitOnCompletion": true
+                }
+              }
+            ],
+            "annotations": []
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/pipelines/01-CopyD365SalesActivityToCosmos')]",
+            "[concat(variables('factoryId'), '/pipelines/02-CopyD365SalesLeadToSQL')]",
+            "[concat(variables('factoryId'), '/pipelines/03-TransformDynamicsData')]",
+            "[concat(variables('factoryId'), '/pipelines/01-StageOpenData')]",
+            "[concat(variables('factoryId'), '/pipelines/02-TransformTaxiData')]"
+
+          ]
+        },
+        {
+          "name": "[concat(variables('dataFactoryName'), '/DailyTrigger')]",
+          "type": "Microsoft.DataFactory/factories/triggers",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "name": "DailyTrigger",
+            "type": "ScheduleTrigger",
+            "typeProperties": {
+              "recurrence": {
+                "frequency": "Day",
+                "interval": 1,
+                "startTime": "[concat('2021-01-01T', parameters('utcTimeTriggerDaily'), 'Z')]",
+                "timeZone": "UTC"
+              }
+            },
+            "pipelines": [
+              {
+                "pipelineReference": {
+                  "type": "PipelineReference",
+                  "referenceName": "00-ControlPipeline"
+                },
+                "parameters": {}
+              }
+            ]
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/pipelines/00-ControlPipeline')]"
           ]
         }
       ]
