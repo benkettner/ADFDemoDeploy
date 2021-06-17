@@ -49,6 +49,15 @@
         "description": "Secure string for sasUri of MicrosoftOpenTaxiData, already filled in, leave at default"
       },
       "defaultValue": "https://azureopendatastorage.blob.core.windows.net/?sv=blob"
+    },
+    "StorageAccountSasProperties": {
+      "type": "object",
+      "defaultValue": {
+        "signedServices": "b",
+        "signedPermission": "rw",
+        "signedExpiry": "[dateTimeAdd(utcNow('u'), 'P3D')]",
+        "signedResourceTypes": "o"
+      }
     }
   },
   "variables": {
@@ -61,6 +70,7 @@
     "managedRGName": "[concat(resourceGroup().name, '-', parameters('projectShort'), '-managed')]",
     "synapseDedicatedPoolConnectionString": "[concat('Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=', 'synapse', parameters('projectShort'), uniqueString(resourceGroup().id), '.sql.azuresynapse.net;Initial Catalog=', 'sqldedicated', parameters('projectShort'))]",
     "storageFSUrl": "[concat('https://', 'stg', parameters('projectShort'), uniqueString(resourceGroup().id), '.dfs.core.windows.net')]",
+    "storageBlobUrl": "[concat('https://', 'stg', parameters('projectShort'), uniqueString(resourceGroup().id), '.blob.core.windows.net')]",
     "presidioAnalyzerAppName": "[concat('app-presidio-analyzer-', parameters('projectShort'), uniqueString(resourceGroup().id))]",
     "presidioAnonymizerAppName": "[concat('app-presidio-anonymizer-', parameters('projectShort'), uniqueString(resourceGroup().id))]",
     "tags": {
@@ -657,7 +667,72 @@
           ]
         },
         {
-          "name": "[concat(variables('dataFactoryName'), '/02-CopyD365SalesLeadToSQL')]",
+          "name": "[concat(variables('dataFactoryName'), '/02-CopyD365SalesLeadToStorage')]",
+          "type": "Microsoft.DataFactory/factories/pipelines",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "description": "This pipeline transfers the sales leads from D365 to the Azure Synapse dedicated SQL pool",
+            "activities": [
+              {
+                "name": "Copy D365",
+                "type": "Copy",
+                "dependsOn": [],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "source": {
+                    "type": "DynamicsSource"
+                  },
+                  "sink": {
+                    "type": "DelimitedTextSink",
+                    "storeSettings": {
+                      "type": "AzureBlobStorageWriteSettings"
+                    },
+                    "formatSettings": {
+                      "type": "DelimitedTextWriteSettings",
+                      "quoteAllText": true,
+                      "fileExtension": ".txt"
+                    }
+                  },
+                  "enableStaging": false
+                },
+                "inputs": [
+                  {
+                    "referenceName": "D365",
+                    "type": "DatasetReference",
+                    "parameters": {
+                      "EntityName": "lead"
+                    }
+                  }
+                ],
+                "outputs": [
+                  {
+                    "referenceName": "CSVD365Leads",
+                    "type": "DatasetReference"
+                  }
+                ]
+              }
+            ],
+            "folder": {
+              "name": "D365"
+            },
+            "annotations": [],
+            "lastPublishTime": "2021-06-14T07:49:09Z"
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/datasets/D365')]",
+            "[concat(variables('factoryId'), '/datasets/CSVD365Leads')]"
+          ]
+        },
+        {
+          "name": "[concat(variables('dataFactoryName'), '/03-CopyD365SalesLeadToSQL')]",
           "type": "Microsoft.DataFactory/factories/pipelines",
           "apiVersion": "2018-06-01",
           "properties": {
@@ -896,6 +971,616 @@
           ]
         },
         {
+          "name": "[concat(variables('dataFactoryName'), '/CSVD365Leads')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "AzureBlobStorage",
+              "type": "LinkedServiceReference"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobStorageLocation",
+                "folderPath": {
+                  "value": "@concat('/leads/', formatDateTime(adddays(utcnow(),-1),'yyyy'), '/', formatDateTime(adddays(utcnow(),-1),'MM'), '/', formatDateTime(adddays(utcnow(),-1),'dd'))",
+                  "type": "Expression"
+                },
+                "container": "d365data"
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "quoteChar": "\""
+            },
+            "schema": [
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              },
+              {
+                "type": "String"
+              }
+            ]
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage')]"
+          ]
+        },
+        {
+          "name": "[concat(variables('dataFactoryName'), '/FileContent')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "AzureBlobStorage",
+              "type": "LinkedServiceReference"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobStorageLocation"
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "quoteChar": "\""
+            },
+            "schema": []
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage')]"
+          ]
+        },
+        {
           "name": "[concat(variables('dataFactoryName'), '/AzureSynapseAnalyticsTable1')]",
           "type": "Microsoft.DataFactory/factories/datasets",
           "apiVersion": "2018-06-01",
@@ -1049,6 +1734,21 @@
           },
           "dependsOn": [
             "[variables('dataFactoryName')]"
+          ]
+        },
+        {
+          "type": "Microsoft.DataFactory/factories/linkedServices",
+          "apiVersion": "2018-06-01",
+          "name": "[concat(variables('dataFactoryName'), '/AzureBlobStorage')]",
+          "properties": {
+            "type": "AzureBlobStorage",
+            "typeProperties": {
+              "connectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listKeys(variables('storageAccountName'), '2019-06-01').keys[0].value)]"
+            }
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[variables('storageAccountName')]"
           ]
         },
         {
@@ -1221,7 +1921,7 @@
           ]
         },
         {
-          "name": "[concat(variables('dataFactoryName'), '/03-TransformDynamicsData')]",
+          "name": "[concat(variables('dataFactoryName'), '/05-TransformDynamicsData')]",
           "type": "Microsoft.DataFactory/factories/pipelines",
           "apiVersion": "2018-06-01",
           "properties": {
@@ -1270,6 +1970,335 @@
           ]
         },
         {
+          "name": "[concat(variables('dataFactoryName'), '/04-AnonymizeSalesLeads')]",
+          "type": "Microsoft.DataFactory/factories/pipelines",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "activities": [
+              {
+                "name": "GetFileList",
+                "description": "Get the list of file",
+                "type": "GetMetadata",
+                "dependsOn": [],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "dataset": {
+                    "referenceName": "CSVD365Leads",
+                    "type": "DatasetReference"
+                  },
+                  "fieldList": [
+                    "childItems"
+                  ],
+                  "storeSettings": {
+                    "type": "AzureBlobStorageReadSettings",
+                    "enablePartitionDiscovery": false
+                  },
+                  "formatSettings": {
+                    "type": "DelimitedTextReadSettings"
+                  }
+                }
+              },
+              {
+                "name": "ForEachFile",
+                "description": "Iterate each file, and move them one by one.",
+                "type": "ForEach",
+                "dependsOn": [
+                  {
+                    "activity": "FilterFiles",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                  "items": {
+                    "value": "@activity('FilterFiles').output.value",
+                    "type": "Expression"
+                  },
+                  "isSequential": false,
+                  "batchCount": 20,
+                  "activities": [
+                    {
+                      "name": "Execute Pipeline1",
+                      "type": "ExecutePipeline",
+                      "dependsOn": [],
+                      "userProperties": [],
+                      "typeProperties": {
+                        "pipeline": {
+                          "referenceName": "04-01-DataAnonymizationSingleFile",
+                          "type": "PipelineReference"
+                        },
+                        "waitOnCompletion": true,
+                        "parameters": {
+                          "filename": {
+                            "value": "@item().name",
+                            "type": "Expression"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "FilterFiles",
+                "description": "filter only files, source folders will not be selected.",
+                "type": "Filter",
+                "dependsOn": [
+                  {
+                    "activity": "GetFileList",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                  "items": {
+                    "value": "@activity('GetFileList').output.childItems",
+                    "type": "Expression"
+                  },
+                  "condition": {
+                    "value": "@equals(item().type, 'File')",
+                    "type": "Expression"
+                  }
+                }
+              }
+            ],
+            "folder": {
+              "name": "D365"
+            },
+            "annotations": []
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/pipelines/04-01-DataAnonymizationSingleFile')]",
+            "[concat(variables('factoryId'), '/datasets/CSVD365Leads')]"
+          ]
+        },
+        {
+          "name": "[concat(variables('dataFactoryName'), '/04-01-DataAnonymizationSingleFile')]",
+          "type": "Microsoft.DataFactory/factories/pipelines",
+          "apiVersion": "2018-06-01",
+
+          "properties": {
+            "activities": [
+              {
+                "name": "LoadFileContent",
+                "type": "Lookup",
+                "dependsOn": [
+                  {
+                    "activity": "Create Append Blob",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "source": {
+                    "type": "DelimitedTextSource",
+                    "storeSettings": {
+                      "type": "AzureBlobStorageReadSettings",
+                      "recursive": false,
+                      "wildcardFolderPath": {
+                        "value": "@concat('/d365data/leads/', formatDateTime(adddays(utcnow(),-1),'yyyy'), '/', formatDateTime(adddays(utcnow(),-1),'MM'), '/', formatDateTime(adddays(utcnow(),-1),'dd'))",
+                        "type": "Expression"
+                      },
+                      "wildcardFileName": {
+                        "value": "@pipeline().parameters.filename",
+                        "type": "Expression"
+                      },
+                      "enablePartitionDiscovery": false
+                    },
+                    "formatSettings": {
+                      "type": "DelimitedTextReadSettings"
+                    }
+                  },
+                  "dataset": {
+                    "referenceName": "FileContent",
+                    "type": "DatasetReference"
+                  },
+                  "firstRowOnly": false
+                }
+              },
+              {
+                "name": "For Each Row in File",
+                "type": "ForEach",
+                "dependsOn": [
+                  {
+                    "activity": "LoadFileContent",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                  "items": {
+                    "value": "@activity('LoadFileContent').output.value",
+                    "type": "Expression"
+                  },
+                  "isSequential": false,
+                  "activities": [
+                    {
+                      "name": "Append data to blob",
+                      "type": "WebActivity",
+                      "dependsOn": [
+                        {
+                          "activity": "PresidioAnonymize",
+                          "dependencyConditions": [
+                            "Succeeded"
+                          ]
+                        }
+                      ],
+                      "policy": {
+                        "timeout": "7.00:00:00",
+                        "retry": 3,
+                        "retryIntervalInSeconds": 15,
+                        "secureOutput": false,
+                        "secureInput": false
+                      },
+                      "userProperties": [],
+                      "typeProperties": {
+                        "url": {
+                          "value": "[concat('@concat(''https://', variables('storageAccountName'), '.blob.core.windows.net/d365data/leads_anonymized/data.csv'', ''?', listAccountSas(variables('storageAccountName'), '2018-07-01', parameters('StorageAccountSasProperties')).accountSasToken, '&comp=appendblock'')')]",
+                          "type": "Expression"
+                        },
+                        "method": "PUT",
+                        "headers": {
+                          "x-ms-blob-type": "AppendBlob"
+                        },
+                        "body": {
+                          "value": "@string(activity('PresidioAnonymize').output)",
+                          "type": "Expression"
+                        }
+                      }
+                    },
+                    {
+                      "name": "PresidioAnalyze",
+                      "description": "Analyze text with presidio",
+                      "type": "WebActivity",
+                      "dependsOn": [],
+                      "policy": {
+                        "timeout": "7.00:00:00",
+                        "retry": 3,
+                        "retryIntervalInSeconds": 15,
+                        "secureOutput": false,
+                        "secureInput": false
+                      },
+                      "userProperties": [],
+                      "typeProperties": {
+                        "url": "[concat('https://', variables('presidioAnalyzerAppName'), '.azurewebsites.net/analyze')]",
+                        "method": "POST",
+                        "headers": {
+                          "Content-Type": "application/json"
+                        },
+                        "body": {
+                          "value": "@concat('{\"text\":\"',replace(string(item()), '\"', '\\\"'),'\",\"language\":\"en\"}')",
+                          "type": "Expression"
+                        }
+                      }
+                    },
+                    {
+                      "name": "PresidioAnonymize",
+                      "description": "Anonymize text with presidio",
+                      "type": "WebActivity",
+                      "dependsOn": [
+                        {
+                          "activity": "PresidioAnalyze",
+                          "dependencyConditions": [
+                            "Succeeded"
+                          ]
+                        }
+                      ],
+                      "policy": {
+                        "timeout": "7.00:00:00",
+                        "retry": 3,
+                        "retryIntervalInSeconds": 15,
+                        "secureOutput": false,
+                        "secureInput": false
+                      },
+                      "userProperties": [],
+                      "typeProperties": {
+                        "url": "[concat('https://', variables('presidioAnonymizerAppName') ,'.azurewebsites.net/anonymize')]",
+                        "method": "POST",
+                        "headers": {
+                          "Content-Type": "application/json"
+                        },
+                        "body": {
+                          "value": "@concat('{\"text\":\"',replace(string(item()), '\"', '\\\"'), '\",\"anonymizers\": {\"DEFAULT\": { \"type\": \"replace\", \"new_value\": \"ANONYMIZED\" }},\"analyzer_results\": ', activity('PresidioAnalyze').output. Response,'}')",
+                          "type": "Expression"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "Create Append Blob",
+                "type": "WebActivity",
+                "dependsOn": [],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "url": {
+                    "value": "[concat('@concat(''https://', variables('storageAccountName'),'.blob.core.windows.net/d365data/leads_anonymized/data.csv'', ''?', listAccountSas(variables('storageAccountName'), '2018-07-01', parameters('StorageAccountSasProperties')).accountSasToken, ''')')]",
+                    "type": "Expression"
+                  },
+                  "method": "PUT",
+                  "headers": {
+                    "x-ms-blob-type": "AppendBlob"
+                  },
+                  "body": " "
+                }
+              }
+            ],
+            "parameters": {
+              "filename": {
+                "type": "string",
+                "defaultValue": "leads.csv"
+              }
+            },
+            "variables": {
+              "firstblob": {
+                "type": "Boolean",
+                "defaultValue": true
+              }
+            },
+            "folder": {
+              "name": "D365"
+            },
+            "annotations": []
+          },
+          "dependsOn": [
+            "[variables('dataFactoryName')]",
+            "[concat(variables('factoryId'), '/datasets/FileContent')]",
+            "[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsTable1')]"
+          ]
+        },
+        {
           "name": "[concat(variables('dataFactoryName'), '/00-ControlPipeline')]",
           "type": "Microsoft.DataFactory/factories/pipelines",
           "apiVersion": "2018-06-01",
@@ -1290,20 +2319,33 @@
                 }
               },
               {
-                "name": "Execute D365 02 Copy",
+                "name": "Execute D365 02 Copy Storage",
                 "type": "ExecutePipeline",
                 "dependsOn": [],
                 "userProperties": [],
                 "typeProperties": {
                   "pipeline": {
-                    "referenceName": "02-CopyD365SalesLeadToSQL",
+                    "referenceName": "02-CopyD365SalesLeadToStorage",
                     "type": "PipelineReference"
                   },
                   "waitOnCompletion": true
                 }
               },
               {
-                "name": "Execute D365 03 Transform",
+                "name": "Execute D365 03 Copy SQL",
+                "type": "ExecutePipeline",
+                "dependsOn": [],
+                "userProperties": [],
+                "typeProperties": {
+                  "pipeline": {
+                    "referenceName": "03-CopyD365SalesLeadToSQL",
+                    "type": "PipelineReference"
+                  },
+                  "waitOnCompletion": true
+                }
+              },
+              {
+                "name": "Execute D365 04 Anonymize",
                 "type": "ExecutePipeline",
                 "dependsOn": [
                   {
@@ -1313,7 +2355,7 @@
                     ]
                   },
                   {
-                    "activity": "Execute D365 02 Copy",
+                    "activity": "Execute D365 02 Copy Storage",
                     "dependencyConditions": [
                       "Succeeded"
                     ]
@@ -1322,7 +2364,33 @@
                 "userProperties": [],
                 "typeProperties": {
                   "pipeline": {
-                    "referenceName": "03-TransformDynamicsData",
+                    "referenceName": "04-AnonymizeSalesLeads",
+                    "type": "PipelineReference"
+                  },
+                  "waitOnCompletion": true
+                }
+              },
+              {
+                "name": "Execute D365 05 Transform",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                  {
+                    "activity": "Execute D365 01 Copy",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  },
+                  {
+                    "activity": "Execute D365 03 Copy SQL",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                  "pipeline": {
+                    "referenceName": "05-TransformDynamicsData",
                     "type": "PipelineReference"
                   },
                   "waitOnCompletion": true
@@ -1367,8 +2435,10 @@
           "dependsOn": [
             "[variables('dataFactoryName')]",
             "[concat(variables('factoryId'), '/pipelines/01-CopyD365SalesActivityToCosmos')]",
-            "[concat(variables('factoryId'), '/pipelines/02-CopyD365SalesLeadToSQL')]",
-            "[concat(variables('factoryId'), '/pipelines/03-TransformDynamicsData')]",
+            "[concat(variables('factoryId'), '/pipelines/02-CopyD365SalesLeadToStorage')]",
+            "[concat(variables('factoryId'), '/pipelines/03-CopyD365SalesLeadToSQL')]",
+            "[concat(variables('factoryId'), '/pipelines/04-AnonymizeSalesLeads')]",
+            "[concat(variables('factoryId'), '/pipelines/05-TransformDynamicsData')]",
             "[concat(variables('factoryId'), '/pipelines/01-StageOpenData')]",
             "[concat(variables('factoryId'), '/pipelines/02-TransformTaxiData')]"
 

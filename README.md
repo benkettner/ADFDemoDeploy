@@ -1,4 +1,4 @@
-# Demo deployment Azure Data Factory
+# Data integration in a box
 
 This repository will deploy an Azure Data Factory and associated resources to your Azure subscription. You will need to have an active Azure subscription to run this sample. 
 
@@ -23,8 +23,14 @@ The data factory contains
 
 ## Before you start
 
+This demo has a few prerequesites that you will have to take care of.
+
+### Pre-Deployment: create D365 account
 You will need a (free demo) Dynamics 365 account and the credentials to that account. You can obtain an account on [https://trials.dynamics.com](https://trials.dynamics.com/).
 
+For deploying this template you will need the username and password for a user registered with that demo account as well as the demo accounts URL which will typically be https://\<your-tenant-name\>.crm8..dynamics.com.
+
+### Post-Deployment: grant acces to Synapse dedicated pool for ADF
 Furthermore you will need to grant your data factory permisssion to access your Synapse dedicated SQL pool. 
 
 You can do this by running the following SQL after logging into your dedicated SQL pool via the Azure Synapse workspace:
