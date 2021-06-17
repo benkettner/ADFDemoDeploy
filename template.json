@@ -5,29 +5,31 @@
   "parameters": {
     "projectShort": {
       "type": "string",
-      "maxLength": 10,
+      "maxLength": 8,
       "metadata": {
-        "description": "A short identifier for your project that will be added to your resource names"
+        "description": "A short identifier (up to 8 characters) for your project that will be added to your resource names"
       }
     },
-    "Dynamics365_properties_typeProperties_username": {
+    "userNameDynamics365": {
       "type": "string",
       "metadata": {
         "description": "Username to log into D365"
-      }
+      },
+      "defaultValue": "D365UserName"
     },
-    "Dynamics365_password": {
+    "passwordDynamics365": {
       "type": "secureString",
       "metadata": {
         "description": "Secure string for password of Dynamics365"
-      }
+      },
+      "defaultValue": "Password"
     },
-
-    "Dynamics365_url": {
+    "urlDynamics365": {
       "type": "string",
       "metadata": {
         "description": "URL of your D365 instance"
-      }
+      },
+      "defaultValue": "https://yourorg.crm8.dynamics.com"
     },
     "utcTimeTriggerDaily": {
       "type": "string",
@@ -1707,12 +1709,12 @@
             "type": "Dynamics",
             "typeProperties": {
               "deploymentType": "Online",
-              "serviceUri": "[parameters('Dynamics365_url')]",
+              "serviceUri": "[parameters('urlDynamics365')]",
               "authenticationType": "Office365",
-              "username": "[parameters('Dynamics365_properties_typeProperties_username')]",
+              "username": "[parameters('userNameDynamics365')]",
               "password": {
                 "type": "SecureString",
-                "value": "[parameters('Dynamics365_password')]"
+                "value": "[parameters('passwordDynamics365')]"
               }
             }
           },
@@ -2210,7 +2212,7 @@
                           "Content-Type": "application/json"
                         },
                         "body": {
-                          "value": "@concat('{\"text\":\"',replace(string(item()), '\"', '\\\"'),'\",\"language\":\"en\"}')",
+                          "value": "@concat('{\"text\":\"',replace(replace(string(item()), '\\\"', ''), '\"', ''''),'\",\"language\":\"en\"}')",
                           "type": "Expression"
                         }
                       }
@@ -2242,7 +2244,7 @@
                           "Content-Type": "application/json"
                         },
                         "body": {
-                          "value": "@concat('{\"text\":\"',replace(string(item()), '\"', '\\\"'), '\",\"anonymizers\": {\"DEFAULT\": { \"type\": \"replace\", \"new_value\": \"ANONYMIZED\" }},\"analyzer_results\": ', activity('PresidioAnalyze').output. Response,'}')",
+                          "value": "@concat('{\"text\":\"',replace(replace(string(item()), '\\\"', ''), '\"', ''''), '\",\"anonymizers\": {\"DEFAULT\": { \"type\": \"replace\", \"new_value\": \"ANONYMIZED\" }},\"analyzer_results\": ', activity('PresidioAnalyze').output. Response,'}')\n",
                           "type": "Expression"
                         }
                       }
